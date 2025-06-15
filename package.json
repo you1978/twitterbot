@@ -1,0 +1,25 @@
+{
+  "name": "discord-hello-bot",
+  "version": "1.0.0",
+  "description": "Discord bot that says こんにちは",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "discord",
+    "bot"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "openai": "^4.24.1",
+    "twitter-api-v2": "^1.23.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
