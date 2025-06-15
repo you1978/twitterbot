@@ -40,12 +40,6 @@ client.on(Events.MessageCreate, async message => {
     // Ignore messages from bots
     if (message.author.bot) return;
     
-    // Check if the message is in a channel named "x-bot"
-    if (message.channel.name === 'x-bot') {
-        // Reply with a friendly message
-        await message.reply(`こんにちは！「${message.content}」というメッセージを受け取りました。`);
-    }
-    
     // Check if the message is in a channel named "x-rewrite"
     if (message.channel.name === 'x-rewrite') {
         try {
@@ -80,14 +74,6 @@ client.on(Events.MessageCreate, async message => {
     }
 });
 
-// Listen for slash command interactions
-client.on(Events.InteractionCreate, async interaction => {
-    if (!interaction.isChatInputCommand()) return;
-
-    if (interaction.commandName === 'hello') {
-        await interaction.reply('こんにちは');
-    }
-});
 
 // Listen for reaction add events
 client.on(Events.MessageReactionAdd, async (reaction, user) => {

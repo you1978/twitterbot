@@ -1,10 +1,8 @@
-# Discord こんにちは Bot
+# Discord X投稿 Bot
 
-多機能Discord botです：
-- 「x-bot」チャンネル: メッセージを送信すると返信
+DiscordからX(Twitter)に投稿するためのbotです：
 - 「x-rewrite」チャンネル: メッセージをX(Twitter)用にリライト（OpenAI API使用）
   - 👍リアクションを付けると自動的にXに投稿
-- スラッシュコマンド `/hello`: 「こんにちは」と返信
 
 ## セットアップ
 
@@ -44,12 +42,8 @@ TWITTER_ACCESS_TOKEN=your_twitter_access_token_here
 TWITTER_ACCESS_TOKEN_SECRET=your_twitter_access_token_secret_here
 ```
 
-6. スラッシュコマンドを登録:
-```bash
-node deploy-commands.js
-```
 
-7. ボットをサーバーに招待:
+6. ボットをサーバーに招待:
    - OAuth2 > URL Generator で以下を選択:
      - Scopes: bot, applications.commands
      - Bot Permissions: Send Messages, Read Message History, Add Reactions, Read Message History
@@ -67,11 +61,9 @@ npm run dev
 
 ## 使い方
 
-1. **x-botチャンネルでの自動返信**: 「x-bot」という名前のチャンネルでメッセージを送信すると、ボットが自動的に返信します
-2. **x-rewriteチャンネルでのリライト**: 「x-rewrite」という名前のチャンネルでメッセージを送信すると、X(Twitter)用にリライトします
-   - リライトされたメッセージに👍リアクションを付けると、自動的にXに投稿されます
-   - 投稿に成功すると✅リアクションが追加され、投稿へのリンクが表示されます
-3. **スラッシュコマンド**: どのチャンネルでも `/hello` コマンドを使用すると「こんにちは」と返信します
+**x-rewriteチャンネルでのリライト**: 「x-rewrite」という名前のチャンネルでメッセージを送信すると、X(Twitter)用にリライトします
+- リライトされたメッセージに👍リアクションを付けると、自動的にXに投稿されます
+- 投稿に成功すると✅リアクションが追加され、投稿へのリンクが表示されます
 
 ## 注意事項
 
