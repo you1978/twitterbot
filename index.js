@@ -65,8 +65,8 @@ client.on(Events.MessageCreate, async message => {
             
             const rewrittenText = completion.choices[0].message.content;
             
-            // Reply with the rewritten text
-            await message.reply(`${rewrittenText}`);
+            // Send the rewritten text as a new message (not a reply)
+            await message.channel.send(`${rewrittenText}`);
         } catch (error) {
             console.error('OpenAI API error:', error);
             await message.reply('❌ リライト中にエラーが発生しました。APIキーを確認してください。');
