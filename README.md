@@ -37,6 +37,7 @@ DISCORD_BOT_TOKEN=your_actual_token_here
 CLIENT_ID=your_application_id_here
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4o
+SYSTEM_PROMPT=あなたはX(Twitter)用の投稿をリライトする専門家です。元のメッセージを、X(Twitter)に適した形式にリライトしてください。改行も適度に入れてください。
 TWITTER_API_KEY=your_twitter_api_key_here
 TWITTER_API_SECRET=your_twitter_api_secret_here
 TWITTER_ACCESS_TOKEN=your_twitter_access_token_here
@@ -47,6 +48,13 @@ TWITTER_ACCESS_TOKEN_SECRET=your_twitter_access_token_secret_here
 - デフォルトは `gpt-4o`
 - 他の利用可能なモデル: `gpt-4-turbo-preview`, `gpt-3.5-turbo` など
 - コストを抑えたい場合は `gpt-3.5-turbo` を使用
+
+**SYSTEM_PROMPTについて**:
+- AIがどのようにリライトするかを指定するプロンプト
+- デフォルトはX(Twitter)用の汎用的なリライト
+- カスタマイズ例:
+  - エンジニア向け: `技術的な内容を分かりやすく、エンジニアの興味を引くようにリライトしてください。絵文字と専門用語を適切に使用してください。`
+  - ビジネス向け: `ビジネスパーソン向けに、プロフェッショナルで説得力のある投稿にリライトしてください。`
 
 
 6. ボットをサーバーに招待:

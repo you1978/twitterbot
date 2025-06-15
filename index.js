@@ -52,7 +52,7 @@ client.on(Events.MessageCreate, async message => {
                 messages: [
                     {
                         role: "system",
-                        content: "あなたはX(Twitter)用の投稿をリライトする専門家です。元のメッセージを500文字以内で、X(Twitter)に適した形式にリライトしてください。改行も適度に入れてください。"
+                        content: process.env.SYSTEM_PROMPT || "あなたはX(Twitter)用の投稿をリライトする専門家です。元のメッセージを、X(Twitter)に適した形式にリライトしてください。改行も適度に入れてください。"
                     },
                     {
                         role: "user",
