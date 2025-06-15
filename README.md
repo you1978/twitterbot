@@ -36,7 +36,7 @@ cp .env.example .env
 DISCORD_BOT_TOKEN=your_actual_token_here
 CLIENT_ID=your_application_id_here
 OPENAI_API_KEY=your_openai_api_key_here
-OPENAI_MODEL=gpt-4o
+OPENAI_MODEL=gpt-4.1-nano-2025-04-14
 SYSTEM_PROMPT=あなたはX(Twitter)用の投稿をリライトする専門家です。元のメッセージを、X(Twitter)に適した形式にリライトしてください。改行も適度に入れてください。
 TWITTER_API_KEY=your_twitter_api_key_here
 TWITTER_API_SECRET=your_twitter_api_secret_here
@@ -45,9 +45,9 @@ TWITTER_ACCESS_TOKEN_SECRET=your_twitter_access_token_secret_here
 ```
 
 **OPENAI_MODELについて**:
-- デフォルトは `gpt-4o`
-- 他の利用可能なモデル: `gpt-4-turbo-preview`, `gpt-3.5-turbo` など
-- コストを抑えたい場合は `gpt-3.5-turbo` を使用
+- デフォルトは `gpt-4.1-nano-2025-04-14`（最新の超高速・低コストモデル）
+- 他の利用可能なモデル: `gpt-4o`, `gpt-4-turbo-preview`, `gpt-3.5-turbo` など
+- 高品質を求める場合は `gpt-4o` を使用
 
 **SYSTEM_PROMPTについて**:
 - AIがどのようにリライトするかを指定するプロンプト
@@ -85,4 +85,4 @@ npm run dev
 - ボットが各チャンネルにアクセス権限を持っていることを確認してください
 - OpenAI APIキーが必要です（https://platform.openai.com/api-keys で取得）
 - X (Twitter) APIのRead and Write権限が必要です
-- 注: デフォルトでGPT-4oモデルを使用（.envファイルで変更可能）
+- 注: デフォルトでGPT-4.1 nanoモデルを使用（.envファイルで変更可能）
