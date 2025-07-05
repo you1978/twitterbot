@@ -114,3 +114,20 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
 // Log in to Discord with your client's token
 client.login(process.env.DISCORD_BOT_TOKEN);
+
+// Add HTTP server for Render health checks
+const http = require('http');
+const PORT = process.env.PORT || 3000;
+
+const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({
+        status: 'healthy',
+        bot: client.user ? `${client.user.tag} is online` : 'Bot is starting...',
+        timestamp: new Date().toISOString()
+    }));
+});
+
+server.listen(PORT, () => {
+    console.log(`Health check server running on port ${PORT}`);
+});
