@@ -120,6 +120,17 @@ const http = require('http');
 const PORT = process.env.PORT || 3000;
 
 const server = http.createServer((req, res) => {
+    // Handle ping endpoint for keep-alive
+    if (req.url === '/ping') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            status: 'pong',
+            timestamp: new Date().toISOString()
+        }));
+        return;
+    }
+    
+    // Default health check
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({
         status: 'healthy',
@@ -130,4 +141,32 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
     console.log(`Health check server running on port ${PORT}`);
+});
+
+// Keep-alive function to prevent Render from sleeping
+const RENDER_URL = 'https://twitterbot-544x.onrender.com/ping';
+const KEEP_ALIVE_INTERVAL = 10 * 60 * 1000; // 10 minutes
+
+function keepAlive() {
+    const https = require('https');
+    const url = require('url');
+    
+    const options = url.parse(RENDER_URL);
+    options.method = 'GET';
+    
+    const req = https.request(options, (res) => {
+        console.log(`Keep-alive ping: ${res.statusCode}`);
+    });
+    
+    req.on('error', (error) => {
+        console.log('Keep-alive ping failed:', error.message);
+    });
+    
+    req.end();
+}
+
+// Start keep-alive pings after bot is ready
+client.once(Events.ClientReady, () => {
+    console.log('Starting keep-alive pings...');
+    setInterval(keepAlive, KEEP_ALIVE_INTERVAL);
 });
