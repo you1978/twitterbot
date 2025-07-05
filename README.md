@@ -86,3 +86,33 @@ npm run dev
 - OpenAI APIキーが必要です（https://platform.openai.com/api-keys で取得）
 - X (Twitter) APIのRead and Write権限が必要です
 - 注: デフォルトでGPT-4.1 nanoモデルを使用（.envファイルで変更可能）
+
+## デプロイについて
+
+### 重要な注意点
+
+このDiscord BotはWebSocketによる持続的な接続が必要なため、**Netlify Functionsなどのサーバーレス環境では正常に動作しません**。
+
+### 推奨デプロイ方法
+
+1. **Railway（推奨）**
+   - コードをGitHubにアップロード
+   - Railwayアカウントでリポジトリを接続
+   - 環境変数を設定
+   - 24時間稼働します
+
+2. **Render**
+   - Node.jsアプリケーションをサポート
+   - 無料プランあり（制限あり）
+
+3. **Heroku**
+   - `Procfile`に`worker: node index.js`を記述
+   - 従来のNode.jsアプリケーションホスティング
+
+4. **VPS/クラウドサーバー**
+   - DigitalOcean、AWS EC2など
+   - PM2でプロセス管理
+
+### 現在のNetlifyデプロイ
+
+現在のNetlifyデプロイはステータス確認エンドポイントのみを提供しています。実際のDiscord Bot機能（`index.js`）は長時間実行プロセスをサポートするプラットフォームで実行する必要があります。
