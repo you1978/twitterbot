@@ -30,6 +30,9 @@ const client = new Client({
     partials: [Partials.Message, Partials.Channel, Partials.Reaction]
 });
 
+// Store custom system prompt
+let customSystemPrompt = null;
+
 // When the client is ready, run this code
 client.once(Events.ClientReady, readyClient => {
     console.log(`Ready! Logged in as ${readyClient.user.tag}`);
@@ -39,6 +42,13 @@ client.once(Events.ClientReady, readyClient => {
 client.on(Events.MessageCreate, async message => {
     // Ignore messages from bots
     if (message.author.bot) return;
+    
+    // Check if the message is in a channel named "setting"
+    if (message.channel.name === 'setting') {
+        // Just acknowledge the message, wait for thumbs up reaction
+        await message.react('👀');
+        return;
+    }
     
     // Check if the message is in a channel named "x-rewrite"
     if (message.channel.name === 'x-rewrite') {
@@ -52,7 +62,7 @@ client.on(Events.MessageCreate, async message => {
                 messages: [
                     {
                         role: "system",
-                        content: process.env.SYSTEM_PROMPT || "あなたはX(Twitter)用の投稿をリライトする専門家です。元のメッセージを、X(Twitter)に適した形式にリライトしてください。改行も適度に入れてください。"
+                        content: customSystemPrompt || process.env.SYSTEM_PROMPT || "あなたはX(Twitter)用の投稿をリライトする専門家です。元のメッセージを、X(Twitter)に適した形式にリライトしてください。改行も適度に入れてください。丁寧で礼儀正しい表現を使い、敬語を適切に使用してください。攻撃的な表現は避け、建設的で前向きなトーンを心がけてください。"
                     },
                     {
                         role: "user",
@@ -89,6 +99,50 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
     // Ignore bot reactions
     if (user.bot) return;
+
+    // Check if it's a thumbs up reaction in setting channel
+    if (reaction.emoji.name === '👍' && reaction.message.channel.name === 'setting') {
+        // Check if the message was sent by a user (not the bot)
+        if (reaction.message.author.id !== client.user.id) {
+            try {
+                // Show typing indicator
+                await reaction.message.channel.sendTyping();
+                
+                // Call OpenAI API to rewrite the message as a system prompt
+                const completion = await openai.chat.completions.create({
+                    model: process.env.OPENAI_MODEL || "gpt-4.1-nano-2025-04-14",
+                    messages: [
+                        {
+                            role: "system",
+                            content: "あなたはAIシステムプロンプトの専門家です。ユーザーの要望を理解し、それを効果的なシステムプロンプトに変換してください。明確で具体的な指示を含め、AIが期待通りに動作するようなプロンプトを作成してください。"
+                        },
+                        {
+                            role: "user",
+                            content: reaction.message.content
+                        }
+                    ],
+                    temperature: 0.7,
+                    max_tokens: 1000
+                });
+                
+                const rewrittenPrompt = completion.choices[0].message.content;
+                
+                // Update the custom system prompt
+                customSystemPrompt = rewrittenPrompt;
+                
+                // React with checkmark to indicate success
+                await reaction.message.react('✅');
+                
+                // Send the rewritten prompt as a reply
+                await reaction.message.reply(`システムプロンプトを更新しました:\n\`\`\`\n${customSystemPrompt}\n\`\`\``);
+            } catch (error) {
+                console.error('OpenAI API error:', error);
+                await reaction.message.react('❌');
+                await reaction.message.channel.send('❌ システムプロンプトの生成中にエラーが発生しました。');
+            }
+        }
+        return;
+    }
 
     // Check if it's a thumbs up reaction in x-rewrite channel
     if (reaction.emoji.name === '👍' && reaction.message.channel.name === 'x-rewrite') {
