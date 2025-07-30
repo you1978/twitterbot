@@ -15,27 +15,40 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    - `DISCORD_BOT_TOKEN` - Discord bot token from Discord Developer Portal
    - `CLIENT_ID` - Application ID from Discord Developer Portal
    - `OPENAI_API_KEY` - OpenAI API key for the rewrite feature
+   - `OPENAI_MODEL` - OpenAI model to use (defaults to gpt-4.1-nano-2025-04-14)
+   - `SYSTEM_PROMPT` - Default system prompt for rewrites (overridden by custom prompts from setting channel)
 
 ## Architecture
 
-This is a Discord bot built with discord.js v14 that provides three main features:
+This is a Discord bot built with discord.js v14 that provides multiple features:
 
-1. **Auto-reply in x-bot channel**: Listens for messages in channels named "x-bot" and responds with a greeting including the original message content.
+### Core Features
+1. **X (Twitter) rewrite in x-rewrite channel**: Messages posted in channels named "x-rewrite" are automatically rewritten using OpenAI's GPT model into Twitter-appropriate format. Users can react with 👍 to open X post compose window with the rewritten content pre-filled and get copy-paste instructions.
 
-2. **X (Twitter) rewrite in x-rewrite channel**: Uses OpenAI's GPT-4o model to rewrite messages posted in channels named "x-rewrite" into Twitter-appropriate format (max 500 characters).
+2. **Dynamic system prompt management**: Messages in channels named "setting" can be converted to custom system prompts by reacting with 👍. The bot will use OpenAI to transform the message into a proper system prompt and use it for future rewrites.
 
-3. **Slash command /hello**: A global slash command that responds with "こんにちは".
+3. **Deployment support**: Includes configuration for both Render (background worker) and Netlify (serverless function) deployments with health check endpoints and keep-alive functionality.
 
 ### Key Files
-- `index.js` - Main bot logic handling message events and slash commands
-- `deploy-commands.js` - Script to register slash commands with Discord
-- `.env` - Environment variables (bot token, client ID, OpenAI API key)
+- `index.js` - Main bot logic handling message events, reactions, and health checks
+- `deploy-commands.js` - Script to register slash commands with Discord (currently empty)
+- `netlify/functions/discord-bot.js` - Netlify serverless function endpoint
+- `render.yaml` - Render deployment configuration for background worker
+- `netlify.toml` - Netlify deployment configuration
+- `.env` - Environment variables (tokens, API keys, configuration)
+
+### Deployment Architecture
+- **Render**: Configured as a background worker service with keep-alive functionality
+- **Netlify**: Configured as serverless functions with health check endpoint
+- **Health checks**: HTTP server on port 3000 with `/ping` endpoint for monitoring
+- **Keep-alive**: Automatic pinging every 10 minutes to prevent service sleeping
 
 ### Important Notes
-- The bot requires MESSAGE CONTENT INTENT to be enabled in Discord Developer Portal
-- Uses OpenAI's `gpt-4o` model for the rewrite feature
-- Bot permissions needed: Send Messages, Read Message History
-- Slash commands must be deployed using `deploy-commands.js` before they can be used
+- Bot requires MESSAGE CONTENT INTENT enabled in Discord Developer Portal
+- Bot permissions needed: Send Messages, Read Message History, Add Reactions
+- No Twitter API credentials required (uses intent URLs for posting)
+- Custom system prompts override environment variable defaults
+- Keep-alive functionality prevents Render service from sleeping
 
 ## 🔨 最重要ルール - 新しいルールの追加プロセス
 

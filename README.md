@@ -1,8 +1,8 @@
 # Discord X投稿 Bot
 
-DiscordからX(Twitter)に投稿するためのbotです：
+DiscordでX(Twitter)投稿を支援するbotです：
 - 「x-rewrite」チャンネル: メッセージをX(Twitter)用にリライト（OpenAI API使用）
-  - 👍リアクションを付けると自動的にXに投稿
+  - 👍リアクションを付けるとX投稿画面が開き、テキストがコピー可能に
 
 ## セットアップ
 
@@ -26,22 +26,13 @@ cp .env.example .env
      - MESSAGE CONTENT INTENT
      - SERVER MEMBERS INTENT (リアクション機能用)
 
-4. X (Twitter) APIキーを取得:
-   - https://developer.twitter.com/ でアプリを作成
-   - API Key、API Secret、Access Token、Access Token Secretを取得
-   - **重要**: Read and Write権限が必要です
-
-5. `.env`ファイルに設定を追加:
+4. `.env`ファイルに設定を追加:
 ```
 DISCORD_BOT_TOKEN=your_actual_token_here
 CLIENT_ID=your_application_id_here
 OPENAI_API_KEY=your_openai_api_key_here
 OPENAI_MODEL=gpt-4.1-nano-2025-04-14
 SYSTEM_PROMPT=あなたはX(Twitter)用の投稿をリライトする専門家です。元のメッセージを、X(Twitter)に適した形式にリライトしてください。改行も適度に入れてください。
-TWITTER_API_KEY=your_twitter_api_key_here
-TWITTER_API_SECRET=your_twitter_api_secret_here
-TWITTER_ACCESS_TOKEN=your_twitter_access_token_here
-TWITTER_ACCESS_TOKEN_SECRET=your_twitter_access_token_secret_here
 ```
 
 **OPENAI_MODELについて**:
@@ -57,10 +48,10 @@ TWITTER_ACCESS_TOKEN_SECRET=your_twitter_access_token_secret_here
   - ビジネス向け: `ビジネスパーソン向けに、プロフェッショナルで説得力のある投稿にリライトしてください。`
 
 
-6. ボットをサーバーに招待:
+5. ボットをサーバーに招待:
    - OAuth2 > URL Generator で以下を選択:
      - Scopes: bot, applications.commands
-     - Bot Permissions: Send Messages, Read Message History, Add Reactions, Read Message History
+     - Bot Permissions: Send Messages, Read Message History, Add Reactions
 
 ## 実行
 
@@ -76,15 +67,15 @@ npm run dev
 ## 使い方
 
 **x-rewriteチャンネルでのリライト**: 「x-rewrite」という名前のチャンネルでメッセージを送信すると、X(Twitter)用にリライトします
-- リライトされたメッセージに👍リアクションを付けると、自動的にXに投稿されます
-- 投稿に成功すると✅リアクションが追加され、投稿へのリンクが表示されます
+- リライトされたメッセージに👍リアクションを付けると、X投稿画面へのリンクとコピー用テキストが表示されます
+- 表示されたテキストをコピーして、リンクからX投稿画面を開いて貼り付けて投稿できます
 
 ## 注意事項
 
 - MESSAGE CONTENT INTENTとSERVER MEMBERS INTENTを有効化する必要があります（Discord Developer Portalで設定）
 - ボットが各チャンネルにアクセス権限を持っていることを確認してください
 - OpenAI APIキーが必要です（https://platform.openai.com/api-keys で取得）
-- X (Twitter) APIのRead and Write権限が必要です
+- Twitter APIは不要（ブラウザのX投稿画面を使用）
 - 注: デフォルトでGPT-4.1 nanoモデルを使用（.envファイルで変更可能）
 
 ## デプロイについて

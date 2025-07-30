@@ -1,23 +1,10 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, Events, Partials } = require('discord.js');
 const OpenAI = require('openai');
-const { TwitterApi } = require('twitter-api-v2');
-
 // Create OpenAI client
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
-
-// Create Twitter client
-const twitterClient = new TwitterApi({
-    appKey: process.env.TWITTER_API_KEY,
-    appSecret: process.env.TWITTER_API_SECRET,
-    accessToken: process.env.TWITTER_ACCESS_TOKEN,
-    accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-});
-
-// Get the read/write client
-const rwClient = twitterClient.readWrite;
 
 // Create a new client instance
 const client = new Client({ 
@@ -146,21 +133,25 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 
     // Check if it's a thumbs up reaction in x-rewrite channel
     if (reaction.emoji.name === '👍' && reaction.message.channel.name === 'x-rewrite') {
-        // Check if the message was sent by the bot (to avoid posting the original message)
+        // Check if the message was sent by the bot (to avoid processing the original message)
         if (reaction.message.author.id === client.user.id) {
             try {
-                // Post to Twitter
-                const tweet = await rwClient.v2.tweet(reaction.message.content);
+                // Get the message content
+                const messageContent = reaction.message.content;
+                
+                // Create X post URL with pre-filled text
+                const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(messageContent)}`;
                 
                 // React with checkmark to indicate success
                 await reaction.message.react('✅');
                 
-                // Send a confirmation message
-                await reaction.message.channel.send(`✅ Xに投稿しました！\nhttps://twitter.com/i/web/status/${tweet.data.id}`);
+                // Send message with X post link and copy instructions
+                await reaction.message.channel.send(`📋 **テキストをコピーしてX投稿画面を開きます**\n\n**📝 コピーされた内容:**\n\`\`\`\n${messageContent}\n\`\`\`\n\n🔗 **X投稿画面:** ${tweetUrl}\n\n💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に貼り付けてください。`);
+                
             } catch (error) {
-                console.error('Twitter API error:', error);
+                console.error('URL generation error:', error);
                 await reaction.message.react('❌');
-                await reaction.message.channel.send('❌ X投稿エラー: ' + error.message);
+                await reaction.message.channel.send('❌ X投稿画面の生成でエラーが発生しました: ' + error.message);
             }
         }
     }
