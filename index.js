@@ -139,14 +139,25 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
                 // Get the message content
                 const messageContent = reaction.message.content;
                 
-                // Create X post URL with pre-filled text
-                const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(messageContent)}`;
+                // Check if content is over 2000 characters for URL encoding
+                let tweetUrl = '';
+                if (messageContent.length > 2000) {
+                    // For long content, just open X compose window without pre-filled text
+                    tweetUrl = 'https://twitter.com/intent/tweet';
+                } else {
+                    // Create X post URL with pre-filled text for shorter content
+                    tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(messageContent)}`;
+                }
                 
                 // React with checkmark to indicate success
                 await reaction.message.react('✅');
                 
                 // Send message with X post link and copy instructions
-                await reaction.message.channel.send(`📋 **テキストをコピーしてX投稿画面を開きます**\n\n**📝 コピーされた内容:**\n\`\`\`\n${messageContent}\n\`\`\`\n\n🔗 **X投稿画面:** ${tweetUrl}\n\n💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に貼り付けてください。`);
+                if (messageContent.length > 2000) {
+                    await reaction.message.channel.send(`📋 **テキストをコピーしてX投稿画面を開きます**\n\n**📝 コピーされた内容 (${messageContent.length}文字):**\n\`\`\`\n${messageContent}\n\`\`\`\n\n🔗 **X投稿画面:** ${tweetUrl}\n\n💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に手動で貼り付けてください。\n⚠️ **注意:** 長いテキストのため、リンクからは自動入力されません。手動でコピー＆ペーストしてください。`);
+                } else {
+                    await reaction.message.channel.send(`📋 **テキストをコピーしてX投稿画面を開きます**\n\n**📝 コピーされた内容:**\n\`\`\`\n${messageContent}\n\`\`\`\n\n🔗 **X投稿画面:** ${tweetUrl}\n\n💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に貼り付けてください。`);
+                }
                 
             } catch (error) {
                 console.error('URL generation error:', error);
