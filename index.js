@@ -152,9 +152,55 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
                 // React with checkmark to indicate success
                 await reaction.message.react('✅');
                 
+                // Function to split long messages for Discord 2000 character limit
+                const sendLongMessage = async (channel, content) => {
+                    const maxLength = 1900; // Leave some buffer for Discord's 2000 char limit
+                    
+                    if (content.length <= maxLength) {
+                        await channel.send(content);
+                        return;
+                    }
+                    
+                    // Split by lines first to preserve formatting
+                    const lines = content.split('\n');
+                    let currentChunk = '';
+                    
+                    for (const line of lines) {
+                        // If adding this line would exceed the limit
+                        if (currentChunk.length + line.length + 1 > maxLength) {
+                            // Send current chunk if not empty
+                            if (currentChunk.trim()) {
+                                await channel.send(currentChunk);
+                                currentChunk = '';
+                            }
+                            
+                            // If a single line is too long, split it
+                            if (line.length > maxLength) {
+                                let remainingLine = line;
+                                while (remainingLine.length > maxLength) {
+                                    await channel.send(remainingLine.substring(0, maxLength));
+                                    remainingLine = remainingLine.substring(maxLength);
+                                }
+                                currentChunk = remainingLine;
+                            } else {
+                                currentChunk = line;
+                            }
+                        } else {
+                            // Add line to current chunk
+                            currentChunk += (currentChunk ? '\n' : '') + line;
+                        }
+                    }
+                    
+                    // Send remaining content
+                    if (currentChunk.trim()) {
+                        await channel.send(currentChunk);
+                    }
+                };
+
                 // Send message with X post link and copy instructions
                 if (messageContent.length > 2000) {
-                    await reaction.message.channel.send(`📋 **テキストをコピーしてX投稿画面を開きます**\n\n**📝 コピーされた内容 (${messageContent.length}文字):**\n\`\`\`\n${messageContent}\n\`\`\`\n\n🔗 **X投稿画面:** ${tweetUrl}\n\n💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に手動で貼り付けてください。\n⚠️ **注意:** 長いテキストのため、リンクからは自動入力されません。手動でコピー＆ペーストしてください。`);
+                    const longMessage = `📋 **テキストをコピーしてX投稿画面を開きます**\n\n**📝 コピーされた内容 (${messageContent.length}文字):**\n\`\`\`\n${messageContent}\n\`\`\`\n\n🔗 **X投稿画面:** ${tweetUrl}\n\n💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に手動で貼り付けてください。\n⚠️ **注意:** 長いテキストのため、リンクからは自動入力されません。手動でコピー＆ペーストしてください。`;
+                    await sendLongMessage(reaction.message.channel, longMessage);
                 } else {
                     await reaction.message.channel.send(`📋 **テキストをコピーしてX投稿画面を開きます**\n\n**📝 コピーされた内容:**\n\`\`\`\n${messageContent}\n\`\`\`\n\n🔗 **X投稿画面:** ${tweetUrl}\n\n💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に貼り付けてください。`);
                 }
