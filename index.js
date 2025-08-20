@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, Events, Partials } = require('discord.js');
+const { Client, GatewayIntentBits, Events, Partials, EmbedBuilder } = require('discord.js');
 const OpenAI = require('openai');
 // Create OpenAI client
 const openai = new OpenAI({
@@ -152,58 +152,87 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
                 // React with checkmark to indicate success
                 await reaction.message.react('✅');
                 
-                // Function to split long messages for Discord 2000 character limit
-                const sendLongMessage = async (channel, content) => {
-                    const maxLength = 1900; // Leave some buffer for Discord's 2000 char limit
+                // Function to create embed with long text using fields
+                const createLongTextEmbed = (messageContent, tweetUrl) => {
+                    const embed = new EmbedBuilder()
+                        .setTitle('📋 X投稿用テキスト')
+                        .setColor(0x1DA1F2) // Twitter blue color
+                        .addFields({
+                            name: '🔗 X投稿画面',
+                            value: `[こちらをクリック](${tweetUrl})`,
+                            inline: false
+                        });
+
+                    // Split content into fields (each field can hold up to 1024 characters)
+                    const maxFieldLength = 1020; // Leave some buffer
+                    const contentParts = [];
                     
-                    if (content.length <= maxLength) {
-                        await channel.send(content);
-                        return;
-                    }
-                    
-                    // Split by lines first to preserve formatting
-                    const lines = content.split('\n');
-                    let currentChunk = '';
-                    
-                    for (const line of lines) {
-                        // If adding this line would exceed the limit
-                        if (currentChunk.length + line.length + 1 > maxLength) {
-                            // Send current chunk if not empty
-                            if (currentChunk.trim()) {
-                                await channel.send(currentChunk);
-                                currentChunk = '';
-                            }
-                            
-                            // If a single line is too long, split it
-                            if (line.length > maxLength) {
-                                let remainingLine = line;
-                                while (remainingLine.length > maxLength) {
-                                    await channel.send(remainingLine.substring(0, maxLength));
-                                    remainingLine = remainingLine.substring(maxLength);
+                    if (messageContent.length <= maxFieldLength) {
+                        contentParts.push(messageContent);
+                    } else {
+                        // Split by lines first to preserve formatting
+                        const lines = messageContent.split('\n');
+                        let currentPart = '';
+                        
+                        for (const line of lines) {
+                            if (currentPart.length + line.length + 1 > maxFieldLength) {
+                                if (currentPart.trim()) {
+                                    contentParts.push(currentPart);
+                                    currentPart = '';
                                 }
-                                currentChunk = remainingLine;
+                                
+                                // If a single line is too long, split it
+                                if (line.length > maxFieldLength) {
+                                    let remainingLine = line;
+                                    while (remainingLine.length > maxFieldLength) {
+                                        contentParts.push(remainingLine.substring(0, maxFieldLength));
+                                        remainingLine = remainingLine.substring(maxFieldLength);
+                                    }
+                                    currentPart = remainingLine;
+                                } else {
+                                    currentPart = line;
+                                }
                             } else {
-                                currentChunk = line;
+                                currentPart += (currentPart ? '\n' : '') + line;
                             }
-                        } else {
-                            // Add line to current chunk
-                            currentChunk += (currentChunk ? '\n' : '') + line;
+                        }
+                        
+                        if (currentPart.trim()) {
+                            contentParts.push(currentPart);
                         }
                     }
+
+                    // Add content as fields
+                    contentParts.forEach((part, index) => {
+                        const fieldName = contentParts.length > 1 ? `📝 コピーされた内容 (${index + 1}/${contentParts.length})` : '📝 コピーされた内容';
+                        embed.addFields({
+                            name: fieldName,
+                            value: `\`\`\`\n${part}\`\`\``,
+                            inline: false
+                        });
+                    });
+
+                    // Add usage instructions
+                    const instructions = messageContent.length > 2000 
+                        ? '💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に手動で貼り付けてください。\n⚠️ **注意:** 長いテキストのため、リンクからは自動入力されません。'
+                        : '💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に貼り付けてください。';
                     
-                    // Send remaining content
-                    if (currentChunk.trim()) {
-                        await channel.send(currentChunk);
+                    embed.addFields({
+                        name: '使い方',
+                        value: instructions,
+                        inline: false
+                    });
+
+                    if (messageContent.length > 2000) {
+                        embed.setFooter({ text: `文字数: ${messageContent.length}文字` });
                     }
+
+                    return embed;
                 };
 
-                // Send message with X post link and copy instructions
-                if (messageContent.length > 2000) {
-                    const longMessage = `📋 **テキストをコピーしてX投稿画面を開きます**\n\n**📝 コピーされた内容 (${messageContent.length}文字):**\n\`\`\`\n${messageContent}\n\`\`\`\n\n🔗 **X投稿画面:** ${tweetUrl}\n\n💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に手動で貼り付けてください。\n⚠️ **注意:** 長いテキストのため、リンクからは自動入力されません。手動でコピー＆ペーストしてください。`;
-                    await sendLongMessage(reaction.message.channel, longMessage);
-                } else {
-                    await reaction.message.channel.send(`📋 **テキストをコピーしてX投稿画面を開きます**\n\n**📝 コピーされた内容:**\n\`\`\`\n${messageContent}\n\`\`\`\n\n🔗 **X投稿画面:** ${tweetUrl}\n\n💡 **使い方:** 上記のテキストをコピーして、リンクをクリックしてX投稿画面に貼り付けてください。`);
-                }
+                // Send embed with X post link and copy instructions
+                const embed = createLongTextEmbed(messageContent, tweetUrl);
+                await reaction.message.channel.send({ embeds: [embed] });
                 
             } catch (error) {
                 console.error('URL generation error:', error);
