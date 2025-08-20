@@ -62,8 +62,70 @@ client.on(Events.MessageCreate, async message => {
             
             const rewrittenText = completion.choices[0].message.content;
             
-            // Send the rewritten text as a new message (not a reply)
-            await message.channel.send(`${rewrittenText}`);
+            // Function to send long rewritten text using embed
+            const sendRewrittenText = async (channel, text) => {
+                if (text.length <= 2000) {
+                    // Short text: send as regular message
+                    await channel.send(`${text}`);
+                } else {
+                    // Long text: send as embed with fields
+                    const embed = new EmbedBuilder()
+                        .setTitle('🔄 X投稿用リライト結果')
+                        .setColor(0x1DA1F2);
+
+                    // Split content into fields (each field can hold up to 1024 characters)
+                    const maxFieldLength = 1020;
+                    const contentParts = [];
+                    
+                    // Split by lines first to preserve formatting
+                    const lines = text.split('\n');
+                    let currentPart = '';
+                    
+                    for (const line of lines) {
+                        if (currentPart.length + line.length + 1 > maxFieldLength) {
+                            if (currentPart.trim()) {
+                                contentParts.push(currentPart);
+                                currentPart = '';
+                            }
+                            
+                            // If a single line is too long, split it
+                            if (line.length > maxFieldLength) {
+                                let remainingLine = line;
+                                while (remainingLine.length > maxFieldLength) {
+                                    contentParts.push(remainingLine.substring(0, maxFieldLength));
+                                    remainingLine = remainingLine.substring(maxFieldLength);
+                                }
+                                currentPart = remainingLine;
+                            } else {
+                                currentPart = line;
+                            }
+                        } else {
+                            currentPart += (currentPart ? '\n' : '') + line;
+                        }
+                    }
+                    
+                    if (currentPart.trim()) {
+                        contentParts.push(currentPart);
+                    }
+
+                    // Add content as fields
+                    contentParts.forEach((part, index) => {
+                        const fieldName = contentParts.length > 1 ? `📝 リライト結果 (${index + 1}/${contentParts.length})` : '📝 リライト結果';
+                        embed.addFields({
+                            name: fieldName,
+                            value: part,
+                            inline: false
+                        });
+                    });
+
+                    embed.setFooter({ text: `文字数: ${text.length}文字 | 👍を押すとX投稿画面を開きます` });
+
+                    await channel.send({ embeds: [embed] });
+                }
+            };
+            
+            // Send the rewritten text
+            await sendRewrittenText(message.channel, rewrittenText);
         } catch (error) {
             console.error('OpenAI API error:', error);
             await message.reply('❌ リライト中にエラーが発生しました。APIキーを確認してください。');
@@ -205,11 +267,24 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
                     // Add content as fields
                     contentParts.forEach((part, index) => {
                         const fieldName = contentParts.length > 1 ? `📝 コピーされた内容 (${index + 1}/${contentParts.length})` : '📝 コピーされた内容';
-                        embed.addFields({
-                            name: fieldName,
-                            value: `\`\`\`\n${part}\`\`\``,
-                            inline: false
-                        });
+                        const fieldValue = `\`\`\`\n${part}\`\`\``;
+                        
+                        // Check field value length (Discord limit is 1024 characters)
+                        if (fieldValue.length > 1024) {
+                            console.warn(`Field value too long: ${fieldValue.length} characters, truncating...`);
+                            const truncatedValue = `\`\`\`\n${part.substring(0, 1014)}\`\`\``;
+                            embed.addFields({
+                                name: fieldName,
+                                value: truncatedValue,
+                                inline: false
+                            });
+                        } else {
+                            embed.addFields({
+                                name: fieldName,
+                                value: fieldValue,
+                                inline: false
+                            });
+                        }
                     });
 
                     // Add usage instructions
@@ -236,6 +311,8 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
                 
             } catch (error) {
                 console.error('URL generation error:', error);
+                console.error('Message content length:', messageContent.length);
+                console.error('Message content preview:', messageContent.substring(0, 100) + '...');
                 await reaction.message.react('❌');
                 await reaction.message.channel.send('❌ X投稿画面の生成でエラーが発生しました: ' + error.message);
             }
