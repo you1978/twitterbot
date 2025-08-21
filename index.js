@@ -221,7 +221,9 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
                         .setColor(0x1DA1F2) // Twitter blue color
                         .addFields({
                             name: '🔗 X投稿画面',
-                            value: `[こちらをクリック](${tweetUrl})`,
+                            value: messageContent.length > 2000 
+                                ? '[こちらをクリック](https://twitter.com/intent/tweet)'
+                                : `[こちらをクリック](${tweetUrl})`,
                             inline: false
                         });
 
