@@ -219,13 +219,17 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
                     const embed = new EmbedBuilder()
                         .setTitle('📋 X投稿用テキスト')
                         .setColor(0x1DA1F2) // Twitter blue color
-                        .addFields({
-                            name: '🔗 X投稿画面',
-                            value: messageContent.length > 2000 
-                                ? '[こちらをクリック](https://twitter.com/intent/tweet)'
-                                : `[こちらをクリック](${tweetUrl})`,
-                            inline: false
-                        });
+                    // Check if the full URL link exceeds Discord field limit
+                    const fullTweetLink = `[こちらをクリック](${tweetUrl})`;
+                    const linkToUse = fullTweetLink.length > 1024 
+                        ? '[こちらをクリック](https://twitter.com/intent/tweet)'
+                        : fullTweetLink;
+                        
+                    embed.addFields({
+                        name: '🔗 X投稿画面',
+                        value: linkToUse,
+                        inline: false
+                    });
 
                     // Split content into fields (each field can hold up to 1024 characters)
                     const maxFieldLength = 1020; // Leave some buffer
